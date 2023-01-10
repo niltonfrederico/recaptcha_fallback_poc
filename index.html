@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recaptcha</title>
+
+    <script src="https://www.google.com/recaptcha/api.js?render={{ V3_CLIENT_TOKEN }}" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+<body>
+
+<a href="#" id="btn">CLICK ME!</a>
+<div id="example1"></div>
+<span id="text"></span>
+
+<script>
+
+    v2_rendered = false
+
+    document.getElementById("btn").addEventListener("click", function(e) {
+        e.preventDefault();
+
+        console.log(v2_rendered)
+
+        if (v2_rendered !== false) {
+            recaptcha_token = grecaptcha.getResponse(v2_rendered)
+            console.log("V2 response " + recaptcha_token)
+
+            config = {
+                    "headers": {
+                        "recaptcha_version":  "v2",
+                        "recaptcha": recaptcha_token
+                    }
+                }
+
+            axios.get("http://localhost:3000/hello", config).then(function(response) {
+                document.getElementById("text").innerText = JSON.stringify(response.data)
+            }).catch(function (error) {
+                alert("Full error!")
+            }) 
+        }else {
+
+            grecaptcha.ready(function() {
+            grecaptcha.execute('{{ V3_CLIENT_TOKEN }}', {action: 'submit'}).then(function(token) {
+                config = {
+                    "headers": {
+                        "recaptcha_version":  "v3",
+                        "recaptcha": token
+                    }
+                }
+
+                axios.get("http://localhost:3000/hello", config).then(function(response) {
+                    document.getElementById("text").innerText = JSON.stringify(response.data)
+                }).catch(function (error) {
+                    if (!v2_rendered) {
+                        v2_rendered = grecaptcha.render('example1', {
+                        'sitekey' : '{{ V2_CLIENT_TOKEN }}',
+                        'theme' : 'light'
+                        });
+                    }
+                }) 
+            })})
+            
+        }
+
+    });
+</script>
+
+    
+</body>
+</html>

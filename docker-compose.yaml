@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - front
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    command:
+      [
+        "uvicorn",
+        "app:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "3000"
+      ]
+  front:
+    image: python:3.10-slim-bullseye
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    working_dir: /app
+    command: [ "python", "-m", "http.server" ]
